@@ -1,0 +1,433 @@
+---
+title: "Your Favorite Stats Program's Favorite Stats Program!"
+subtitle: "Exploring the Tidyverse with film data"
+author: "Jenn Leishman"
+date: "`r Sys.Date()`"
+output:
+  learnr::tutorial
+runtime: shiny_prerendered
+header-includes:
+- \usepackage{fvextra}
+- \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+---
+
+
+```{r include = FALSE, eval = TRUE}
+library(tidyverse)
+```
+
+
+\tableofcontents
+\newpage
+
+## Introduction
+
+Hello! 
+
+Have you ever had a burning and passionate desire to take a data set and find ways to organize and transform it? Maybe you've been hoping to understand something that wasn't yet clear by looking at a data set with thousands and thousands of rows. Or, maybe you wanted to isolate certain variables in the data set and create a visual. Whatever your goals, you've came to the right place!
+
+Today, we will be using a data set containing blockbuster movie data in order to practice some Tidyverse functions and learn data wrangling basics. 
+
+The first thing we always want to make sure we do when using any of the Tidyverse packages is what we call "librarying" into it. 
+
+To make sure Tidyverse is installed in you R program, in your console, you can run
+
+```{r eval = FALSE}
+install.packages("tidyverse")
+```
+
+Once Tidyverse is installed, you can library into it so that R recognizes the functions we are using from it.
+
+```{r eval = FALSE}
+library(tidyverse)
+```
+
+Now we're ready to start looking at our data!
+
+### Our data
+
+The data set that we will be discussing and practicing on today is from the Blockbuster Movies Database 1975-2015. The data is downloaded in a csv file format from Kaggle, and can be found [here](https://www.kaggle.com/datasets/aditya126/movies-box-office-dataset-2000-2024) if you want to download it for yourself. 
+
+Instead of just telling you what I see when I load the data, let's run through the process of reading it into R.
+
+#### Let's see the data!
+
+In the Tidyverse, there is a very useful package called "readr" that assists with reading in files so that we can access and use the data in R. Because our data is in a csv format, we can use the function "read_csv", and the delimiter is already specified. If we had a different file format or a specific delimiter to use, we could use the function "read_delim" instead. However, for us, read_csv will do the trick.
+
+```{r setup, message = FALSE, eval = TRUE}
+movies <- read_csv("blockbuster-top_ten_movies_per_year_DFE.csv")
+```
+
+Notice the syntax we used to run this line of code. I want to name our dataframe "movies", and the arrow will assign that label.
+
+With our movies dataframe, we have a few different options to view the data itself.
+
+```{r display, warning = FALSE, results = FALSE}
+# Just using the name of the dataframe will display it in it's entirety.
+movies
+
+# Use the "head" function to view the first 6 rows of the data.
+head(movies)
+
+# Use the "glimpse" function in order to get an overview of what columns are present.
+glimpse(movies)
+```
+
+#### So, what actually is this dataset?
+
+There are 20 columns present, and you'd be right to be confused on the way that they are currently organized. We will touch on that soon, don't fret!
+
+| Column title | Data                |
+|--------------|---------------------|
+| audience_freshness | Rotten Tomatoes indication for percentage of positive audience reviews, 0 - 100 |
+| poster_url | link to image of the movie poster |
+| rt audience score | Rotten Tomatoes score from audiences, averaged, 1-5 |
+| rt_freshness | Rotten Tomatoes indication for percentage of positive critic reviews, 0 - 100 |
+| rt_score | Rotten Tomatoes score from critics, averaged, 1-5 |
+| 2015_inflation | Percent of inflation, 2015 |
+| adjusted | Total income of the movie adjusted for inflation |
+| genres | Primary genres of the movie |
+| Genre_1 | First genre of the movie |
+| Genre_2 | Second genre of the movie |
+| Genre-3 | Third genre of the movie |
+| imdb_rating | Movie's IMDB rating, 0-10 |
+| length | Length of movie, minutes |
+| rank_in_year | Rank of movie for it's year of release, with 1 being the highest grossing movie |
+| rating | Motion Picture Association content rating |
+| release_date | Release date, day-month-year format |
+| studio | Name of studio who released the movie |
+| title | Full title of the movie |
+| worldwide_gross | Gross income for the movie, in U.S. dollars |
+| year| Year the movie was released |
+
+## Data Transformation
+
+Data transformation is important in order to observe different patterns in the data, make it more readable and visually clear, and also allow us to create comprehensive graphs and visualizations of the data.
+
+I briefly introduced you to readr, but the main Tidyvese package will we be using is called **dplyr**. It is mainly used for data transformation, and just like readr, because you already loaded in the entire Tidyverse package, you don't have to load into each subpackage individually. 
+
+### The Pipe
+
+You aren't going to initially know what's happening here with the functions yet, and that's totally expected and okay! I want you to pay attention to the syntax.
+
+```{r}
+movies7 <- movies |>
+  filter(rt_score >= 7.0) |>
+  select(title, rt_score)
+
+movies7
+```
+
+In the first line of the code chunk, we assign "movies7" as the name of the new dataframe we are creating. The original dataframe that we want to use is "movies", and as we saw when using readr, we can use "<-" to assign variable names. 
+
+*Note: If you want to update the original dataframe, you will just assign the original name. For example, your first line would look like movies <- movies |>*
+
+The *pipe itself* is the |> symbol, and essentially allows us to continue adding onto the query by adding more lines and functions. When we use the pipe after movies in our first line, we are telling R that we want to perform the following functions on the dataset to modify it. The pipe operator is also used after our first function to continue onto the second.
+
+Now that you can see the structure, let's learn how to transform!!
+
+### Filter
+
+Filtering the data allows you specify certain values in certain columns that you do or don't want to include in your updated dataset.
+
+```{r}
+# Only display movies with rt_score 7 or higher
+movies |>
+  filter(rt_score >= 7)
+```
+
+That's great! How about for 2 parameters?
+
+```{r}
+# Only display movies with rt_score greater than 7 or less than 3
+movies |>
+  filter(rt_score < 3 | rt_score > 7)
+```
+
+Notice how the pipe character | is used as the "or" statement. What happens when you try to shorten the statement?
+
+```{r, eval = FALSE}
+movies |>
+  filter(3 < rt_score > 7)
+```
+
+We got an error! Make sure that when using 2 parameters, you treat each side of the or statement like an entire query.
+
+We also can use "and" statements in our filter queries.
+
+```{r}
+# Only display movies where Genre_1 is family, and the studio was Disney
+movies |>
+  filter(Genre_1 == "Family" & studio == "Walt Disney Pictures")
+```
+
+Let's step through what's happening here. 
+
+We specify the columns we are filtering the same way that we did previously. However, to check if a column entry equals a certain value, we have to use the double-equal sign, ==. 
+
+Because we are checking for strings, we have to put the search parameters in quotations.
+
+The "and" operator we use is the ampersand, &.
+
+*Note: Some movies are listed under the studio "Walt Disney Pictures / Pixar". We will learn how to search for any studio name containing "Disney" later on in the tutorial.*
+
+#### Try it out!
+
+```{r filterPractice, exercise = TRUE}
+# Write code to display all PG-13 movies where Genre_1 is Sci-Fi or Fantasy.
+```
+
+```{r filterPractice-solution}
+movies |>
+  filter(rating == "PG-13" & (Genre_1 == "Sci-Fi" | Genre_1 == "Fantasy"))
+```
+
+Good job! That was more complex than our previous exercises. 
+
+### Relocate
+
+When we just print the full movies dataframe, it's not intuitive that we have to scroll through several columns to view the movie column. The relocate function allows us to move around the order of columns in our data frame.
+
+```{r}
+# Move the title column to the front
+movies <- movies |> # assigning the variable so that this saves as our new movies dataframe
+  relocate(title)
+movies
+```
+
+Isn't that nice?
+
+We can also move consecutive columsn in groups.
+
+```{r}
+# Move the last three columns of the data frame to the beginning
+movies <- movies |> 
+  relocate(studio:year, .after = title)
+movies
+```
+
+Wow! By using the colon, we were able to select all of the commons between and including studio up until year. We then used the .after parameter to specify that we wanted these three columns to be moved to the right of the title column.
+
+The column containing the movie poster URL is in our way. Let's move it to the end of the dataframe.
+
+```{r relocatePractice, exercise = TRUE}
+# Move poster_URL to the last column of the dataframe
+```
+
+```{r relocatePractice-hint-2}
+movies <- movies |>
+  relocate(poster_url, .after = last_col())
+```
+
+```{r relocatePractice-hint-1}
+# The variable last_col() can be used instead of having to specify the name of the last column.
+```
+
+Congratulations! You're picking up on the Tidyverse.
+
+What if I changed my mind, and decided that I don't want to include the poster_url column at all? 
+
+### Select
+
+Before we get ahead of ourselves, let me go overview what select even does. It often gets confused with filter. However, filter chooses rows with certain values in the data, while select chooses specified columns. 
+Select is often used to create new dataframes that only contain certain columns from the original, and are therefore easier to focus on what you actually care about.
+
+```{r}
+# Create a new dataframe with the columns title, year, and worldwide_gross
+movies_simple <- movies |> # assignment operator again! we want a new dataframe
+  select(title, year, worldwide_gross)
+movies_simple
+```
+
+Wow! See how simple that was? Select just takes the names of the columns you'd like. You can also use the colon just like we did in relocate in order to select chunks of consecutive columns. Since you've seen the syntax, I'm going to let you try this one!
+
+```{r selectPractice, exercise = TRUE}
+# Create a new dataframe title movie_genres containing the movie titles, as well as the three individual genres
+```
+
+```{r selectPractice-solution}
+movie_genres <- movies |>
+  select(title, Genre_1:Genre_3)
+movie_genres
+```
+
+Yay! Now, back to original question: how would we get rid of our poster_URL column?
+
+One option would just be to select the names of every single other column. However, that will take us a long time. 
+
+Instead, we can use the ! operator, which means to not use or select that column.
+
+```{r}
+# Create a new dataframe without the poster_url column
+movies_posterless <- movies |>
+  select(!poster_url)
+movies_posterless
+```
+
+The ! operator can be placed at the beginning of any variable or group that you want to exclude. Therefore, this code selects all of the columns that AREN'T titled poster_URL.
+
+### Mutate (and more!)
+
+You've learned some of the basic functions to wrangle data and get it into the format that you'd like. However, how about adding columns? Sometimes, you want to calculate averages or counts, or even replace specific values in a column. You'll learn that the mutate function is going to be always at the tips of your fingers when using the Tidyverse.
+
+```{r}
+# Use mutate to create a new column that averages the Rotten Tomatoes audience and normal freshness scores.
+movies |>
+  mutate(average_freshness = (audience_freshness + rt_freshness)/2) |>
+  select(title, average_freshness)
+```
+
+You'll notice here that I also used a select statement. By starting to combine our different data transformation functions, it makes viewing the resulting dataframe so much clearer! This way, we can just see if our mutate function worked to create an average rating column.
+
+### Putting it all together
+
+There are many more ways to use the mutate function, many of which require utilizing multiple functions at once. Now that we've learned a few of the basics, I'd like to start putting it all together, and introduce a few new functions that can be useful in the context of mutate.
+
+To count the number of rows in each value, for example, to count the number of movies by each studio in our dataset to see the most common studio, we can use the **group_by** function. If you want to go into further depth with the syntax, you can check out the Tidyverse website [here](https://dplyr.tidyverse.org/reference/group_by.html). To use mutate to create a count, we first have to group by a column. 
+
+If you're still lost, that's totally okay! Let's see how it would look.
+```{r}
+# Create a new column called "count" to count the number of movies from each studio in our dataset
+movies_studio_count <- movies |>
+  group_by(studio) |>
+  mutate(count = n()) |>
+  select(studio, count)
+movies_studio_count
+```
+
+Now, there is a count for the number of movies from each studio. However, many of the rows seem to be repeated. To fix that, we can use the function **distinct**. This function will make remove any repeats of a value. If we hadn't grouped the data, this would be troublesome, because it would only keep the first movie from each studio. However, when our data is grouped, distinct can be very helpful!
+
+```{r}
+# Remove duplicate columns
+movies_studio_count <- movies_studio_count |>
+  distinct(studio, .keep_all = TRUE)
+movies_studio_count
+```
+
+One of the downfalls of the distinct function is that it will, by default, only save the column that it was searching for. We can use the .keep_all parameter so that all the columns from the given data set are 
+kept in the updated dataset.
+
+### Your turn!
+
+It's time for you to take all of the functions we've learned and put them together! The examples I've given throughout this tutorial only touch the tip of the iceberg. There are many different ways to use dplyr to wrangle and transform your data, as you'll learn through your data science experience. You can also find more information about the dplyr package [here](https://dplyr.tidyverse.org/index.html).
+
+```{r dplyrPractice, exercise = TRUE}
+# Create a new dataframe called movies_new that contains the columns movie title, year, adjusted, and a new column containing the average of the Rotten Tomatoes and IMDB Ratings. Only include movies with an average rating over 6.
+```
+
+```{r dplyrPractice-solution}
+movies_new <- movies |>
+  mutate(average_rating = (rt_score + imdb_rating)/2) |>
+  select(title, year, adjusted, average_rating) |>
+  filter(average_rating > 6)
+movies_new
+```
+
+
+## Pattern matching
+
+If you have any computer science or coding background, you may have heard the term "pattern matching". This often is used in the context of regular expressions, which, though useful in data science, are not going to be covered in this particular tutorial. (However, if you're interested, I do recommend them as a more in depth form of pattern matching.) 
+
+Simple pattern match, i.e., matching strings and substrings, can be performed in the filter function, using the **stringr** function **str_detect**. There are many other stringr functions, and you can learn about them [here](https://stringr.tidyverse.org/). 
+
+Remember how we talked about how to gather all of the Disney studio names? Because the format of the studio name varies from "Walt Disney Pictures", to "Walt Disney Pictures / Pixar" to "Disney" and more, it'd be annoying to individually specify them as specific names we wanted to filter by. Instead, we can use str_detect to tell R that we want to filter by any studio name that contains the string "Disney".
+
+```{r}
+movies |>
+  filter(str_detect(studio, "Disney"))|>
+  select(studio)
+```
+
+As you can see, str_detect takes 2 primary arguments: the name of the column you want to searching in, and the string that you are searching for. If you were to use regular expressions, they could be used in place of a specific string. 
+
+Using this code, we are able to find all the different variations of the "Disney" studio name.
+
+```{r strPractice, exercise = TRUE}
+# Use str_detect to only choose rows where the release month was in June (abbreviated Jun in the release date)
+```
+
+```{r strPractice-solution}
+movies |>
+  filter(str_detect(release_date, "Jun"))
+```
+
+
+## Plotting
+
+Let's talk about another Tidyverse package: ggplot. This package will allow us to create data visuals, and though I'll run us through a more simple example, there are so many different graphs and plots that ggplot can be used for! You can find information to go more into depth of ggplot [here](https://ggplot2.tidyverse.org/). 
+
+We are going to continue using our original movies data, but do know that ggplot can be combined with the dplyr functions to create different visualizations!
+
+### Scatterplots
+
+Scatterplots are an easy and simple graph to visualize two numeric variables. Let's use ggplot to graph the box office performance of movies released each year. 
+
+One hindrance is that our box office data currently is stored as a "character" type, essentially as a string. We want it to be a numeric value so that we can graph it. This is going to take both the stringr function "str_remove", and the mutate function as.numeric. I also am using a regular expression to catch both the dollar signs and the commas from the original string, so you can start to familiarize yourself with that format. If you don't fully understand this code, it's okay! It's more complicated than the previous mutate functions we were using.
+
+```{r}
+movies_numeric <- movies |>
+  mutate(adjusted_num = as.numeric(str_remove_all(adjusted, "[\\$,]"))) # the two backslashes in front of the $ escape it because $ has other meanings in regular expressions
+movies_numeric
+```
+
+Now that we have the adjusted box office as a numeric value, we can use it as a number, and continue with grouping by year in order to create a bar graph.
+
+```{r scatterplot, warning = FALSE}
+movies_numeric |>
+  group_by(year) |>
+  ggplot(movies,
+       mapping = aes(x = year, y = adjusted_num)) +
+  geom_point()
+```
+
+Yay! We've made our first graph! Scatterplots are a great way to start. Note that we use the + sign to connect ggplot to it's related functions, instead of the pipe operater.
+
+Now, how can we go about labelling it? Let's create the same graph again, but use the "labs()" argument in order to add a title and axes label. If you have a multi-colored graph, you can also use the labs() argument to relabel the legend. 
+
+```{r scatterplot_labels, warning = FALSE}
+movies_numeric |>
+  ggplot(movies,
+       mapping = aes(x = year, y = adjusted_num)) +
+  geom_point() +
+  labs(
+    x = "Year",
+    y = "Box office Revenue, in US dollars",
+    title = "Box office revenue for blockbusters",
+    subtitle = "1975-2015, adjusted for 2015 inflation"
+  )
+```
+
+### Bar graphs
+
+Creating other graphs are similar. To create a scatterplot, we used the ggplot function geom_point(). For a bar graph, we will be using geom_bar(). Remember that a bar graph just takes one categorical variable, while a scatterplot takes two numeric variables. Most of the time, bar graphs have the x axis on the bottom and y axis on the top, but because some of the genre labels are longer, we can switch the axes to customize our graph and make it more legible. 
+
+
+```{r bar_graph, warning = FALSE}
+# Bar graph of quantities of Genre_1
+
+movies |>
+  filter(!is.na(Genre_1)) |> # this line uses the na.rm argument to remove any movies with no Genre_1 from our graph
+  ggplot(movies,
+       mapping = aes(x = Genre_1)) +
+  geom_bar() +
+  coord_flip() + # flips the axes for readability
+  labs(
+    x = "Primary genre",
+    y = "Count of blockbusters",
+    title = "Reoccurence of genres over blockbuster hits",
+    subtitle = "1975-2015"
+  )
+
+```
+
+Congratulations! Now you know how to make a bar graph. There are also all sorts of fun ways to customize fonts, themes, and colors, that you can spend time learning through your time doing data science. 
+
+## Further Resources
+
+Congratulations!
+
+You've completed my crash-course tutorial on the Tidyverse. Though this was only a brief overview of what you'd encounter, I hope you have the tools to continue in your data science journey. The Tidyverse homepage can be found [here](https://www.tidyverse.org/), where you can learn more about the different subpackages we weren't able to cover today, and find further resources.
+
+Another resource that can be used in your Tidyverse journey is the textbook *R for Data Science* by Hadley Wickham, Mine Centinkaya-Rundel, & Garrett Grolemund. You can find an online version of this textbook [here](https://r4ds.hadley.nz/). 
+
+Best of luck friend! Go tidy some data, and I hope you have lots of fun doing it.
